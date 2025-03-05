@@ -35,9 +35,9 @@ jobs:
         echo "$RAW_OUTPUT"
 
         # Extract commit messages and categorize them
-        FEATURES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | includes("feat")) | .messageHeadline')
-        FIXES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | includes("fix")) | .messageHeadline')
-        OTHER=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | (includes("feat") or includes("fix")) | not) | .messageHeadline')
+        FEATURES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | contains("feat")) | .messageHeadline')
+        FIXES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | contains("fix")) | .messageHeadline')
+        OTHER=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | (contains("feat") or contains("fix")) | not) | .messageHeadline')
 
         # Debug: Print categorized commit messages
         echo "Features:"
