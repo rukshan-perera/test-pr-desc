@@ -1,5 +1,11 @@
 ## Release v{{ version }}
 
+### Overview
+This release includes the following changes:
+- **New Features**: {{ features_count }}
+- **Bug Fixes**: {{ fixes_count }}
+- **Other Changes**: {{ other_count }}
+
 ### Features
 {{ features }}
 
@@ -10,5 +16,6 @@
 {{ other }}
 
 ### Additional Information
-- Built by GitHub Actions.
-- Date: {{ date }}
+- **Release Date**: {{ date }}
+- **Built by**: GitHub Actions
+- **Related Issues/PRs**: [View on GitHub](#)  <!-- Add a link to the PRs or issues if needed -->
