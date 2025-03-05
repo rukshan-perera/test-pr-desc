@@ -1,7 +1,13 @@
 ## Release v{{ version }}
 
-### Changes
-{{ commit_messages }}
+### Features
+{{ features }}
+
+### Fixes
+{{ fixes }}
+
+### Other Changes
+{{ other }}
 
 ### Additional Information
 - Built by GitHub Actions.
