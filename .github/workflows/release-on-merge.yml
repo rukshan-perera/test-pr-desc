@@ -16,41 +16,21 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history for all branches and tags
 
-    - name: Extract commit messages between releases
+    - name: Extract commit messages from the PR
       id: extract-commits
       run: |
-        # Fetch all tags from the remote
-        git fetch --tags
+        # Get the commit messages from the PR
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        COMMIT_MESSAGES=$(gh pr view $PR_NUMBER --json commits --jq '.commits[].message')
 
-        # Get the two most recent tags
-        TAGS=$(git tag --sort=-v:refname | head -n 2)
-        PREVIOUS_TAG=$(echo "$TAGS" | sed -n '2p')
-        LATEST_TAG=$(echo "$TAGS" | sed -n '1p')
-
-        # Debug: Print tags
-        echo "Previous Tag: $PREVIOUS_TAG"
-        echo "Latest Tag: $LATEST_TAG"
-
-        # If there is no previous tag, use the initial commit
-        if [ -z "$PREVIOUS_TAG" ]; then
-          PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
-          echo "No previous tag found. Using initial commit: $PREVIOUS_TAG"
-        fi
-
-        # Get the commit messages between the previous tag and the latest tag
-        # Exclude merge commits using --no-merges
-        COMMIT_MESSAGES=$(git log --no-merges --pretty=format:"- %s" "$PREVIOUS_TAG".."$LATEST_TAG")
-
-        # Debug: Print commit messages
-        echo "Commit Messages:"
-        echo "$COMMIT_MESSAGES"
+        # Format commit messages as a list
+        COMMIT_MESSAGES=$(echo "$COMMIT_MESSAGES" | sed 's/^/- /')
 
         # Replace newlines with <br> tags
         COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\n'/'<br>'}"
 
         # Set the output
         echo "COMMIT_MESSAGES=${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
-        echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_OUTPUT
 
     - name: Determine version number
       id: version
