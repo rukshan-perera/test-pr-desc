@@ -23,7 +23,8 @@ jobs:
         git fetch origin main
 
         # Get the commit messages between the base branch (main) and the PR head
-        COMMIT_MESSAGES=$(git log --pretty=format:"- %s" origin/main..HEAD)
+        # Exclude merge commits using --no-merges
+        COMMIT_MESSAGES=$(git log --no-merges --pretty=format:"- %s" origin/main..HEAD)
 
         # Escape newlines and special characters for GitHub Actions output
         COMMIT_MESSAGES="${COMMIT_MESSAGES//'%'/'%25'}"
@@ -50,7 +51,7 @@ jobs:
     - name: Create Release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GEN_RELEASE_NOTE_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ steps.version.outputs.NEW_VERSION }}
         release_name: Release v${{ steps.version.outputs.NEW_VERSION }}
