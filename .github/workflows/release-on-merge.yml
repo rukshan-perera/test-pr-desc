@@ -59,13 +59,15 @@ jobs:
         RELEASE_BODY="${RELEASE_BODY//'{{ commit_messages }}'/${{ steps.extract-commits.outputs.COMMIT_MESSAGES }}}"
         RELEASE_BODY="${RELEASE_BODY//'{{ date }}'/$(date -u +'%Y-%m-%d %H:%M:%S')}"
 
-        # Set the output
-        echo "RELEASE_BODY=${RELEASE_BODY}" >> $GITHUB_OUTPUT
+        # Set the output using EOF syntax for multi-line content
+        echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
+        echo "${RELEASE_BODY}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GEN_RELEASE_NOTE_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GEN_RELEASE_NOTE_TOKEN }}  # Use custom token
       with:
         tag_name: v${{ steps.version.outputs.NEW_VERSION }}
         release_name: Release v${{ steps.version.outputs.NEW_VERSION }}
