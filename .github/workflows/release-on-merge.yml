@@ -75,25 +75,31 @@ jobs:
           NEW_VERSION="1.0.0"
         fi
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
-
     - name: Populate release note template
       id: populate-template
       run: |
         # Read the template file
         TEMPLATE=$(cat .github/workflows/release-note-template.md)
 
+        # Calculate counts
+        FEATURES_COUNT=$(echo "${{ steps.extract-commits.outputs.FEATURES }}" | grep -c '^-')
+        FIXES_COUNT=$(echo "${{ steps.extract-commits.outputs.FIXES }}" | grep -c '^-')
+        OTHER_COUNT=$(echo "${{ steps.extract-commits.outputs.OTHER }}" | grep -c '^-')
+
         # Replace placeholders with actual values
         RELEASE_BODY="${TEMPLATE//'{{ version }}'/${{ steps.version.outputs.NEW_VERSION }}}"
         RELEASE_BODY="${RELEASE_BODY//'{{ features }}'/${{ steps.extract-commits.outputs.FEATURES }}}"
         RELEASE_BODY="${RELEASE_BODY//'{{ fixes }}'/${{ steps.extract-commits.outputs.FIXES }}}"
         RELEASE_BODY="${RELEASE_BODY//'{{ other }}'/${{ steps.extract-commits.outputs.OTHER }}}"
+        RELEASE_BODY="${RELEASE_BODY//'{{ features_count }}'/$FEATURES_COUNT}"
+        RELEASE_BODY="${RELEASE_BODY//'{{ fixes_count }}'/$FIXES_COUNT}"
+        RELEASE_BODY="${RELEASE_BODY//'{{ other_count }}'/$OTHER_COUNT}"
         RELEASE_BODY="${RELEASE_BODY//'{{ date }}'/$(date -u +'%Y-%m-%d %H:%M:%S')}"
 
         # Set the output using EOF syntax for multi-line content
         echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
         echo "${RELEASE_BODY}" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-
     - name: Create Release
       uses: actions/create-release@v1
       env:
