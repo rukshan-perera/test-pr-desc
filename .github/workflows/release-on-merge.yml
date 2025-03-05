@@ -52,7 +52,7 @@ jobs:
       id: populate-template
       run: |
         # Read the template file
-        TEMPLATE=$(cat .github/workflows/template.md)
+        TEMPLATE=$(cat .github/workflows/release-note-template.md)
 
         # Replace placeholders with actual values
         RELEASE_BODY="${TEMPLATE//'{{ version }}'/${{ steps.version.outputs.NEW_VERSION }}}"
