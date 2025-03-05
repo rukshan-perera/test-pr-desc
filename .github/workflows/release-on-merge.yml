@@ -35,7 +35,7 @@ jobs:
         echo "$RAW_OUTPUT"
 
         # Extract commit messages
-        COMMIT_MESSAGES=$(echo "$RAW_OUTPUT" | jq -r '.commits[].message')
+        COMMIT_MESSAGES=$(echo "$RAW_OUTPUT" | jq -r '.commits[].messageHeadline')
 
         # Debug: Print commit messages
         echo "Commit Messages:"
