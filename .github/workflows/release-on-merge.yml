@@ -26,10 +26,8 @@ jobs:
         # Exclude merge commits using --no-merges
         COMMIT_MESSAGES=$(git log --no-merges --pretty=format:"- %s" origin/main..HEAD)
 
-        # Escape newlines and special characters for GitHub Actions output
-        COMMIT_MESSAGES="${COMMIT_MESSAGES//'%'/'%25'}"
-        COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\n'/'%0A'}"
-        COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\r'/'%0D'}"
+        # Replace newlines with literal '\n' for GitHub Actions output
+        COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\n'/'\\n'}"
 
         # Set the output
         echo "COMMIT_MESSAGES=${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
