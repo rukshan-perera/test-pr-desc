@@ -50,11 +50,18 @@ jobs:
     - name: Create Release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GEN_RELEASE_NOTE_TOKEN }}  # Use the default GitHub token
+        GITHUB_TOKEN: ${{ secrets.GEN_RELEASE_NOTE_TOKEN }}
       with:
         tag_name: v${{ steps.version.outputs.NEW_VERSION }}
         release_name: Release v${{ steps.version.outputs.NEW_VERSION }}
         body: |
+          ## Release v${{ steps.version.outputs.NEW_VERSION }}
+
+          ### Changes
           ${{ steps.extract-commits.outputs.COMMIT_MESSAGES }}
+
+          ### Additional Information
+          - Built by GitHub Actions.
+          - Date: $(date -u +'%Y-%m-%d %H:%M:%S')
         draft: false
         prerelease: false
