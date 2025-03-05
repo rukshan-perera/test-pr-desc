@@ -12,14 +12,19 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags
 
     - name: Extract commit messages
       id: extract-commits
       run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
+        # Fetch the latest changes from origin
+        git fetch origin main
+
+        # Get the commit messages between the base branch (main) and the PR head
         COMMIT_MESSAGES=$(git log --pretty=format:"- %s" origin/main..HEAD)
-        echo "::set-output name=commit_messages::$COMMIT_MESSAGES"
+        echo "COMMIT_MESSAGES=${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
 
     - name: Determine version number
       id: version
@@ -28,14 +33,14 @@ jobs:
         # For example, you could use the last tag and increment it
         LAST_TAG=$(git describe --tags --abbrev=0)
         NEW_VERSION=$(echo $LAST_TAG | awk -F. '{printf("%d.%d.%d", $1, $2, $3+1)}')
-        echo "::set-output name=new_version::$NEW_VERSION"
+        echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: actions/create-release@v1
       with:
-        tag_name: v${{ steps.version.outputs.new_version }}
-        release_name: Release v${{ steps.version.outputs.new_version }}
+        tag_name: v${{ steps.version.outputs.NEW_VERSION }}
+        release_name: Release v${{ steps.version.outputs.NEW_VERSION }}
         body: |
-          ${{ steps.extract-commits.outputs.commit_messages }}
+          ${{ steps.extract-commits.outputs.COMMIT_MESSAGES }}
         draft: false
         prerelease: false
