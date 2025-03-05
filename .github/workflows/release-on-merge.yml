@@ -32,9 +32,7 @@ jobs:
         COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\r'/'%0D'}"
 
         # Set the output
-        echo "COMMIT_MESSAGES<<EOF" >> $GITHUB_OUTPUT
-        echo "${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        echo "COMMIT_MESSAGES=${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
 
     - name: Determine version number
       id: version
@@ -50,6 +48,20 @@ jobs:
         fi
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
+    - name: Populate release note template
+      id: populate-template
+      run: |
+        # Read the template file
+        TEMPLATE=$(cat .github/workflows/template.md)
+
+        # Replace placeholders with actual values
+        RELEASE_BODY="${TEMPLATE//'{{ version }}'/${{ steps.version.outputs.NEW_VERSION }}}"
+        RELEASE_BODY="${RELEASE_BODY//'{{ commit_messages }}'/${{ steps.extract-commits.outputs.COMMIT_MESSAGES }}}"
+        RELEASE_BODY="${RELEASE_BODY//'{{ date }}'/$(date -u +'%Y-%m-%d %H:%M:%S')}"
+
+        # Set the output
+        echo "RELEASE_BODY=${RELEASE_BODY}" >> $GITHUB_OUTPUT
+
     - name: Create Release
       uses: actions/create-release@v1
       env:
@@ -57,14 +69,6 @@ jobs:
       with:
         tag_name: v${{ steps.version.outputs.NEW_VERSION }}
         release_name: Release v${{ steps.version.outputs.NEW_VERSION }}
-        body: |
-          ## Release v${{ steps.version.outputs.NEW_VERSION }}
-
-          ### Changes
-          ${{ fromJSON(steps.extract-commits.outputs.COMMIT_MESSAGES) }}
-
-          ### Additional Information
-          - Built by GitHub Actions.
-          - Date: $(date -u +'%Y-%m-%d %H:%M:%S')
+        body: ${{ steps.populate-template.outputs.RELEASE_BODY }}
         draft: false
         prerelease: false
