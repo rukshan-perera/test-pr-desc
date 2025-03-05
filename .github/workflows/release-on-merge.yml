@@ -20,7 +20,7 @@ jobs:
       run: |
         echo "PR Number: ${{ github.event.pull_request.number }}"
 
-    - name: Extract commit messages from the PR
+    - name: Extract and categorize commit messages from the PR
       id: extract-commits
       env:
         GH_TOKEN: ${{ secrets.GEN_RELEASE_NOTE_TOKEN }}  # Use custom token
@@ -34,21 +34,33 @@ jobs:
         echo "Raw output of gh pr view:"
         echo "$RAW_OUTPUT"
 
-        # Extract commit messages
-        COMMIT_MESSAGES=$(echo "$RAW_OUTPUT" | jq -r '.commits[].messageHeadline')
+        # Extract commit messages and categorize them
+        FEATURES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | startswith("feat")) | .messageHeadline')
+        FIXES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | startswith("fix")) | .messageHeadline')
+        OTHER=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | (startswith("feat") or startswith("fix")) | not) | .messageHeadline')
 
-        # Debug: Print commit messages
-        echo "Commit Messages:"
-        echo "$COMMIT_MESSAGES"
+        # Debug: Print categorized commit messages
+        echo "Features:"
+        echo "$FEATURES"
+        echo "Fixes:"
+        echo "$FIXES"
+        echo "Other Changes:"
+        echo "$OTHER"
 
-        # Format commit messages as a list
-        COMMIT_MESSAGES=$(echo "$COMMIT_MESSAGES" | sed 's/^/- /')
+        # Format commit messages as lists
+        FEATURES=$(echo "$FEATURES" | sed 's/^/- /')
+        FIXES=$(echo "$FIXES" | sed 's/^/- /')
+        OTHER=$(echo "$OTHER" | sed 's/^/- /')
 
         # Replace newlines with <br> tags
-        COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\n'/'<br>'}"
+        FEATURES="${FEATURES//$'\n'/'<br>'}"
+        FIXES="${FIXES//$'\n'/'<br>'}"
+        OTHER="${OTHER//$'\n'/'<br>'}"
 
-        # Set the output
-        echo "COMMIT_MESSAGES=${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
+        # Set the outputs
+        echo "FEATURES=${FEATURES}" >> $GITHUB_OUTPUT
+        echo "FIXES=${FIXES}" >> $GITHUB_OUTPUT
+        echo "OTHER=${OTHER}" >> $GITHUB_OUTPUT
 
     - name: Determine version number
       id: version
@@ -72,7 +84,9 @@ jobs:
 
         # Replace placeholders with actual values
         RELEASE_BODY="${TEMPLATE//'{{ version }}'/${{ steps.version.outputs.NEW_VERSION }}}"
-        RELEASE_BODY="${RELEASE_BODY//'{{ commit_messages }}'/${{ steps.extract-commits.outputs.COMMIT_MESSAGES }}}"
+        RELEASE_BODY="${RELEASE_BODY//'{{ features }}'/${{ steps.extract-commits.outputs.FEATURES }}}"
+        RELEASE_BODY="${RELEASE_BODY//'{{ fixes }}'/${{ steps.extract-commits.outputs.FIXES }}}"
+        RELEASE_BODY="${RELEASE_BODY//'{{ other }}'/${{ steps.extract-commits.outputs.OTHER }}}"
         RELEASE_BODY="${RELEASE_BODY//'{{ date }}'/$(date -u +'%Y-%m-%d %H:%M:%S')}"
 
         # Set the output using EOF syntax for multi-line content
