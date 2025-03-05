@@ -27,14 +27,23 @@ jobs:
         PREVIOUS_TAG=$(echo "$TAGS" | sed -n '2p')
         LATEST_TAG=$(echo "$TAGS" | sed -n '1p')
 
+        # Debug: Print tags
+        echo "Previous Tag: $PREVIOUS_TAG"
+        echo "Latest Tag: $LATEST_TAG"
+
         # If there is no previous tag, use the initial commit
         if [ -z "$PREVIOUS_TAG" ]; then
           PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+          echo "No previous tag found. Using initial commit: $PREVIOUS_TAG"
         fi
 
         # Get the commit messages between the previous tag and the latest tag
         # Exclude merge commits using --no-merges
         COMMIT_MESSAGES=$(git log --no-merges --pretty=format:"- %s" "$PREVIOUS_TAG".."$LATEST_TAG")
+
+        # Debug: Print commit messages
+        echo "Commit Messages:"
+        echo "$COMMIT_MESSAGES"
 
         # Replace newlines with <br> tags
         COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\n'/'<br>'}"
