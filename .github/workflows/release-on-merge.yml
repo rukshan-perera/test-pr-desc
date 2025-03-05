@@ -16,6 +16,10 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history for all branches and tags
 
+    - name: Debug PR Number
+      run: |
+        echo "PR Number: ${{ github.event.pull_request.number }}"
+
     - name: Extract commit messages from the PR
       id: extract-commits
       env:
@@ -23,7 +27,19 @@ jobs:
       run: |
         # Get the commit messages from the PR
         PR_NUMBER=${{ github.event.pull_request.number }}
-        COMMIT_MESSAGES=$(gh pr view $PR_NUMBER --json commits --jq '.commits[].message')
+        echo "Fetching commit messages for PR #$PR_NUMBER"
+
+        # Debug: Print raw output of gh pr view
+        RAW_OUTPUT=$(gh pr view $PR_NUMBER --json commits)
+        echo "Raw output of gh pr view:"
+        echo "$RAW_OUTPUT"
+
+        # Extract commit messages
+        COMMIT_MESSAGES=$(echo "$RAW_OUTPUT" | jq -r '.commits[].message')
+
+        # Debug: Print commit messages
+        echo "Commit Messages:"
+        echo "$COMMIT_MESSAGES"
 
         # Format commit messages as a list
         COMMIT_MESSAGES=$(echo "$COMMIT_MESSAGES" | sed 's/^/- /')
