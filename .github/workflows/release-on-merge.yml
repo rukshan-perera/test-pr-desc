@@ -16,21 +16,32 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history for all branches and tags
 
-    - name: Extract commit messages
+    - name: Extract commit messages between releases
       id: extract-commits
       run: |
-        # Fetch the latest changes from origin
-        git fetch origin main
+        # Fetch all tags from the remote
+        git fetch --tags
 
-        # Get the commit messages between the base branch (main) and the PR head
+        # Get the two most recent tags
+        TAGS=$(git tag --sort=-v:refname | head -n 2)
+        PREVIOUS_TAG=$(echo "$TAGS" | sed -n '2p')
+        LATEST_TAG=$(echo "$TAGS" | sed -n '1p')
+
+        # If there is no previous tag, use the initial commit
+        if [ -z "$PREVIOUS_TAG" ]; then
+          PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+        fi
+
+        # Get the commit messages between the previous tag and the latest tag
         # Exclude merge commits using --no-merges
-        COMMIT_MESSAGES=$(git log --no-merges --pretty=format:"- %s" origin/main..HEAD)
+        COMMIT_MESSAGES=$(git log --no-merges --pretty=format:"- %s" "$PREVIOUS_TAG".."$LATEST_TAG")
 
         # Replace newlines with <br> tags
         COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\n'/'<br>'}"
 
         # Set the output
         echo "COMMIT_MESSAGES=${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
+        echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_OUTPUT
 
     - name: Determine version number
       id: version
