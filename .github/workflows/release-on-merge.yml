@@ -19,7 +19,6 @@ jobs:
     - name: Debug PR Number
       run: |
         echo "PR Number: ${{ github.event.pull_request.number }}"
-
     - name: Extract and categorize commit messages from the PR
       id: extract-commits
       env:
@@ -30,14 +29,21 @@ jobs:
         echo "Fetching commit messages for PR #$PR_NUMBER"
 
         # Debug: Print raw output of gh pr view
-        RAW_OUTPUT=$(gh pr view $PR_NUMBER --json commits)
+        RAW_OUTPUT=$(gh pr view $PR_NUMBER --json commits,author)
         echo "Raw output of gh pr view:"
         echo "$RAW_OUTPUT"
 
-        # Extract commit messages and categorize them
-        FEATURES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | contains("feat")) | .messageHeadline')
-        FIXES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | contains("fix")) | .messageHeadline')
-        OTHER=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | (contains("feat") or contains("fix")) | not) | .messageHeadline')
+        # Extract commit messages, author, and PR number
+        COMMIT_MESSAGES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | "\(.messageHeadline) by @\(.author.login) in #\(.associatedPullRequests[0].number)"')
+
+        # Debug: Print formatted commit messages
+        echo "Formatted Commit Messages:"
+        echo "$COMMIT_MESSAGES"
+
+        # Categorize commit messages
+        FEATURES=$(echo "$COMMIT_MESSAGES" | grep -i "feat")
+        FIXES=$(echo "$COMMIT_MESSAGES" | grep -i "fix")
+        OTHER=$(echo "$COMMIT_MESSAGES" | grep -iv -e "feat" -e "fix")
 
         # Debug: Print categorized commit messages
         echo "Features:"
@@ -60,8 +66,7 @@ jobs:
         # Set the outputs
         echo "FEATURES=${FEATURES}" >> $GITHUB_OUTPUT
         echo "FIXES=${FIXES}" >> $GITHUB_OUTPUT
-        echo "OTHER=${OTHER}" >> $GITHUB_OUTPUT
-
+        echo "OTHER=${OTHER}" >> $GITHUB_OUTPUT    
     - name: Determine version number
       id: version
       run: |
