@@ -1,0 +1,64 @@
+name: Generate Release Notes
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  generate_release:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'stage' && github.event.pull_request.head.ref == 'master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for versioning
+
+      - name: Get latest tag version
+        id: get_version
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          IFS='.' read -r -a version <<< "${latest_tag//v/}"
+          new_version="v${version[0]}.${version[1]}.$((version[2] + 1))"
+          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
+
+      - name: Extract commit messages
+        id: get_commits
+        run: |
+          commits=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)..HEAD | grep -E -v 'Merge|^WIP:|^chore:')
+          echo "COMMIT_MESSAGES<<EOF" >> $GITHUB_ENV
+          echo "$commits" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: actions/github-script@v7
+        env:
+          COMMIT_MESSAGES: ${{ env.COMMIT_MESSAGES }}
+          VERSION: ${{ env.NEW_VERSION }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const commitMessages = process.env.COMMIT_MESSAGES.trim();
+            const version = process.env.VERSION;
+
+            if (!commitMessages) {
+              console.log("No relevant commit messages. Skipping release.");
+              return;
+            }
+
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: version,
+              name: `Release ${version}`,
+              body: `## Changes in ${version}\n\n${commitMessages}`,
+              draft: false,
+              prerelease: false
+            });
+
+      - name: Push new tag
+        run: |
+          git tag $NEW_VERSION
+          git push origin $NEW_VERSION
