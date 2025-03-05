@@ -37,9 +37,14 @@ jobs:
       id: version
       run: |
         # Logic to determine the next version number
-        # For example, you could use the last tag and increment it
-        LAST_TAG=$(git describe --tags --abbrev=0)
-        NEW_VERSION=$(echo $LAST_TAG | awk -F. '{printf("%d.%d.%d", $1, $2, $3+1)}')
+        # Check if any tags exist
+        if git describe --tags --abbrev=0 &> /dev/null; then
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          NEW_VERSION=$(echo $LAST_TAG | awk -F. '{printf("%d.%d.%d", $1, $2, $3+1)}')
+        else
+          # If no tags exist, start with v1.0.0
+          NEW_VERSION="1.0.0"
+        fi
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
     - name: Create Release
