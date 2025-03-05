@@ -16,12 +16,6 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history for all branches and tags
 
-    - name: Authenticate GitHub CLI
-      env:
-        GH_TOKEN: ${{ secrets.GEN_RELEASE_NOTE_TOKEN }}  # Use custom token
-      run: |
-        gh auth login --with-token < <(echo "$GH_TOKEN")
-
     - name: Extract commit messages from the PR
       id: extract-commits
       env:
