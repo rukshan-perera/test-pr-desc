@@ -24,6 +24,13 @@ jobs:
 
         # Get the commit messages between the base branch (main) and the PR head
         COMMIT_MESSAGES=$(git log --pretty=format:"- %s" origin/main..HEAD)
+
+        # Escape newlines and special characters for GitHub Actions output
+        COMMIT_MESSAGES="${COMMIT_MESSAGES//'%'/'%25'}"
+        COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\n'/'%0A'}"
+        COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\r'/'%0D'}"
+
+        # Set the output
         echo "COMMIT_MESSAGES=${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
 
     - name: Determine version number
