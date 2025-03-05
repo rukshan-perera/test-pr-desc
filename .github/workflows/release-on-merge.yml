@@ -32,7 +32,9 @@ jobs:
         COMMIT_MESSAGES="${COMMIT_MESSAGES//$'\r'/'%0D'}"
 
         # Set the output
-        echo "COMMIT_MESSAGES=${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
+        echo "COMMIT_MESSAGES<<EOF" >> $GITHUB_OUTPUT
+        echo "${COMMIT_MESSAGES}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Determine version number
       id: version
@@ -59,7 +61,7 @@ jobs:
           ## Release v${{ steps.version.outputs.NEW_VERSION }}
 
           ### Changes
-          ${{ steps.extract-commits.outputs.COMMIT_MESSAGES }}
+          ${{ fromJSON(steps.extract-commits.outputs.COMMIT_MESSAGES) }}
 
           ### Additional Information
           - Built by GitHub Actions.
