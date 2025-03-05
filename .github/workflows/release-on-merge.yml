@@ -1,0 +1,41 @@
+name: Create Release on PR Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  create-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Extract commit messages
+      id: extract-commits
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        COMMIT_MESSAGES=$(git log --pretty=format:"- %s" origin/main..HEAD)
+        echo "::set-output name=commit_messages::$COMMIT_MESSAGES"
+
+    - name: Determine version number
+      id: version
+      run: |
+        # Logic to determine the next version number
+        # For example, you could use the last tag and increment it
+        LAST_TAG=$(git describe --tags --abbrev=0)
+        NEW_VERSION=$(echo $LAST_TAG | awk -F. '{printf("%d.%d.%d", $1, $2, $3+1)}')
+        echo "::set-output name=new_version::$NEW_VERSION"
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      with:
+        tag_name: v${{ steps.version.outputs.new_version }}
+        release_name: Release v${{ steps.version.outputs.new_version }}
+        body: |
+          ${{ steps.extract-commits.outputs.commit_messages }}
+        draft: false
+        prerelease: false
