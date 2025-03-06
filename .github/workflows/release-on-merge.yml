@@ -27,30 +27,17 @@ jobs:
       run: |
         # Get the commit messages from the PR
         PR_NUMBER=${{ github.event.pull_request.number }}
-        PR_AUTHOR=${{ github.event.pull_request.user.login }}
-        echo "Fetching commit messages for PR #$PR_NUMBER by @$PR_AUTHOR"
+        echo "Fetching commit messages for PR #$PR_NUMBER"
 
         # Debug: Print raw output of gh pr view
         RAW_OUTPUT=$(gh pr view $PR_NUMBER --json commits)
         echo "Raw output of gh pr view:"
         echo "$RAW_OUTPUT"
 
-        # Extract commit messages and format them with author and PR number
-        COMMIT_MESSAGES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | "\(.messageHeadline) by @'"$PR_AUTHOR"' in #'"$PR_NUMBER"'"')
-
-        # Debug: Print formatted commit messages
-        echo "Formatted Commit Messages:"
-        echo "$COMMIT_MESSAGES"
-
-        # Debug: Check if COMMIT_MESSAGES is empty
-        if [ -z "$COMMIT_MESSAGES" ]; then
-          echo "Warning: COMMIT_MESSAGES is empty."
-        fi
-
-        # Categorize commit messages
-        FEATURES=$(echo "$COMMIT_MESSAGES" | grep -i "feat")
-        FIXES=$(echo "$COMMIT_MESSAGES" | grep -i "fix")
-        OTHER=$(echo "$COMMIT_MESSAGES" | grep -iv -e "feat" -e "fix")
+        # Extract commit messages and categorize them
+        FEATURES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | contains("feat")) | .messageHeadline')
+        FIXES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | contains("fix")) | .messageHeadline')
+        OTHER=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | (contains("feat") or contains("fix")) | not) | .messageHeadline')
 
         # Debug: Print categorized commit messages
         echo "Features:"
@@ -75,12 +62,6 @@ jobs:
         echo "FIXES=${FIXES}" >> $GITHUB_OUTPUT
         echo "OTHER=${OTHER}" >> $GITHUB_OUTPUT
 
-    - name: Debug Outputs
-      run: |
-        echo "Features: ${{ steps.extract-commits.outputs.FEATURES }}"
-        echo "Fixes: ${{ steps.extract-commits.outputs.FIXES }}"
-        echo "Other: ${{ steps.extract-commits.outputs.OTHER }}"
-
     - name: Determine version number
       id: version
       run: |
@@ -94,7 +75,6 @@ jobs:
           NEW_VERSION="1.0.0"
         fi
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
-
     - name: Populate release note template
       id: populate-template
       run: |
@@ -116,20 +96,10 @@ jobs:
         RELEASE_BODY="${RELEASE_BODY//'{{ other_count }}'/$OTHER_COUNT}"
         RELEASE_BODY="${RELEASE_BODY//'{{ date }}'/$(date -u +'%Y-%m-%d %H:%M:%S')}"
 
-        # Debug: Print the populated release body
-        echo "Populated Release Body:"
-        echo "$RELEASE_BODY"
-
         # Set the output using EOF syntax for multi-line content
         echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
-        echo "$RELEASE_BODY" >> $GITHUB_OUTPUT
+        echo "${RELEASE_BODY}" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-
-    - name: Debug Release Body
-      run: |
-        echo "Release Body:"
-        echo "${{ steps.populate-template.outputs.RELEASE_BODY }}"
-
     - name: Create Release
       uses: actions/create-release@v1
       env:
