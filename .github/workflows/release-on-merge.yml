@@ -35,7 +35,7 @@ jobs:
         echo "$RAW_OUTPUT"
 
         # Extract commit messages and categorize them
-        FEATURES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | contains("feat")) | "\(.messageHeadline) by @\(.authors[0].login) in #\(PR_NUMBER)"')
+        FEATURES=$(echo "$RAW_OUTPUT" | jq --arg PR_NUMBER "$PR_NUMBER" -r '.commits[] | select(.messageHeadline | contains("feat")) | "\(.messageHeadline) by @\(.authors[0].login) in #\($PR_NUMBER)"')
         FIXES=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | contains("fix")) | .messageHeadline')
         OTHER=$(echo "$RAW_OUTPUT" | jq -r '.commits[] | select(.messageHeadline | (contains("feat") or contains("fix")) | not) | .messageHeadline')
 
