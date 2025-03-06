@@ -52,15 +52,43 @@ jobs:
         FIXES=$(echo "$FIXES" | sed 's/^/- /')
         OTHER=$(echo "$OTHER" | sed 's/^/- /')
 
+        # Debug: Print categorized commit messages
+        echo "Features:"
+        if [ -n "$FEATURES" ]; then
+          echo "$FEATURES"
+        else
+          echo "No features found."
+        fi
+
+        echo "Fixes:"
+        if [ -n "$FIXES" ]; then
+          echo "$FIXES"
+        else
+          echo "No fixes found."
+        fi
+
+        echo "Other Changes:"
+        if [ -n "$OTHER" ]; then
+          echo "$OTHER"
+        else
+          echo "No other changes found."
+        fi
+
         # Replace newlines with <br> tags
         FEATURES="${FEATURES//$'\n'/'<br>'}"
         FIXES="${FIXES//$'\n'/'<br>'}"
         OTHER="${OTHER//$'\n'/'<br>'}"
 
-        # Set the outputs
-        echo "FEATURES=${FEATURES}" >> $GITHUB_OUTPUT
-        echo "FIXES=${FIXES}" >> $GITHUB_OUTPUT
-        echo "OTHER=${OTHER}" >> $GITHUB_OUTPUT
+        # Set the outputs (only if non-empty)
+        if [ -n "$FEATURES" ]; then
+          echo "FEATURES=${FEATURES}" >> $GITHUB_OUTPUT
+        fi
+        if [ -n "$FIXES" ]; then
+          echo "FIXES=${FIXES}" >> $GITHUB_OUTPUT
+        fi
+        if [ -n "$OTHER" ]; then
+          echo "OTHER=${OTHER}" >> $GITHUB_OUTPUT
+        fi
 
     - name: Determine version number
       id: version
