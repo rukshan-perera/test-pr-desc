@@ -1,18 +1,14 @@
-## Release v{{ version }}
-
 ### Overview
 This release includes the following changes:
 - **New Features**: {{ features_count }}
 - **Bug Fixes**: {{ fixes_count }}
 - **Other Changes**: {{ other_count }}
 
-### Features
+### ✨ New Features & Improvements
 {{ features }}
 
-### Fixes
+### 🐛 Bug Fixes & Optimizations
 {{ fixes }}
-
-### Other Changes
 {{ other }}
 
 ### Additional Information
