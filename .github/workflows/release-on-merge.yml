@@ -19,6 +19,7 @@ jobs:
     - name: Debug PR Number
       run: |
         echo "PR Number: ${{ github.event.pull_request.number }}"
+
     - name: Extract and categorize commit messages from the PR
       id: extract-commits
       env:
@@ -40,6 +41,11 @@ jobs:
         # Debug: Print formatted commit messages
         echo "Formatted Commit Messages:"
         echo "$COMMIT_MESSAGES"
+
+        # Debug: Check if COMMIT_MESSAGES is empty
+        if [ -z "$COMMIT_MESSAGES" ]; then
+          echo "Warning: COMMIT_MESSAGES is empty."
+        fi
 
         # Categorize commit messages
         FEATURES=$(echo "$COMMIT_MESSAGES" | grep -i "feat")
