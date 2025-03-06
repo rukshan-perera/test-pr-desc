@@ -19,7 +19,7 @@ jobs:
     - name: Debug PR Number
       run: |
         echo "PR Number: ${{ github.event.pull_request.number }}"
-    - name: Extract and categorize commit messages from the PR
+        - name: Extract and categorize commit messages from the PR
       id: extract-commits
       env:
         GH_TOKEN: ${{ secrets.GEN_RELEASE_NOTE_TOKEN }}  # Use custom token
