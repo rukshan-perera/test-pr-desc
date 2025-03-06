@@ -1,3 +1,24 @@
+name: Create Release on PR Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  create-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags
+
+    - name: Debug PR Number
+      run: |
+        echo "PR Number: ${{ github.event.pull_request.number }}"
     - name: Extract and categorize commit messages from the PR
       id: extract-commits
       env:
