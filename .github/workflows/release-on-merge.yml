@@ -19,7 +19,6 @@ jobs:
     - name: Debug PR Number
       run: |
         echo "PR Number: ${{ github.event.pull_request.number }}"
-
     - name: Extract and categorize commit messages from the PR
       id: extract-commits
       env:
@@ -75,17 +74,17 @@ jobs:
         if [ -n "$FEATURES" ]; then
           echo "FEATURES=${FEATURES}" >> $GITHUB_OUTPUT
         else
-          echo "FEATURES=No features found." >> $GITHUB_OUTPUT
+          echo "FEATURES=" >> $GITHUB_OUTPUT  # Set to empty if no features
         fi
         if [ -n "$FIXES" ]; then
           echo "FIXES=${FIXES}" >> $GITHUB_OUTPUT
         else
-          echo "FIXES=No fixes found." >> $GITHUB_OUTPUT
+          echo "FIXES=" >> $GITHUB_OUTPUT  # Set to empty if no fixes
         fi
         if [ -n "$OTHER" ]; then
           echo "OTHER=${OTHER}" >> $GITHUB_OUTPUT
         else
-          echo "OTHER=No other changes found." >> $GITHUB_OUTPUT
+          echo "OTHER=" >> $GITHUB_OUTPUT  # Set to empty if no other changes
         fi
 
     - name: Determine version number
@@ -101,6 +100,7 @@ jobs:
           NEW_VERSION="1.0.0"
         fi
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
+
     - name: Populate release note template
       id: populate-template
       run: |
@@ -126,6 +126,7 @@ jobs:
         echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
         echo "${RELEASE_BODY}" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
+
     - name: Create Release
       uses: actions/create-release@v1
       env:
