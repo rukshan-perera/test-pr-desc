@@ -91,9 +91,9 @@ jobs:
       id: version
       run: |
         # Logic to determine the next version number
-        # Check if any tags exist
-        if git describe --tags --abbrev=0 &> /dev/null; then
-          LAST_TAG=$(git describe --tags --abbrev=0)
+        # Check if any tags exist that start with 'v'
+        if git describe --tags --abbrev=0 --match 'v*' &> /dev/null; then
+          LAST_TAG=$(git describe --tags --abbrev=0 --match 'v*')
           NEW_VERSION=$(echo $LAST_TAG | awk -F. '{printf("%d.%d.%d", $1, $2, $3+1)}')
         else
           # If no tags exist, start with v1.0.0
