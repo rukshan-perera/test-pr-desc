@@ -41,19 +41,6 @@ jobs:
 
         # Debug: Print categorized commit messages
         echo "Features:"
-        echo "$FEATURES"
-        echo "Fixes:"
-        echo "$FIXES"
-        echo "Other Changes:"
-        echo "$OTHER"
-
-        # Format commit messages as lists
-        FEATURES=$(echo "$FEATURES" | sed 's/^/- /')
-        FIXES=$(echo "$FIXES" | sed 's/^/- /')
-        OTHER=$(echo "$OTHER" | sed 's/^/- /')
-
-        # Debug: Print categorized commit messages
-        echo "Features:"
         if [ -n "$FEATURES" ]; then
           echo "$FEATURES"
         else
@@ -74,6 +61,11 @@ jobs:
           echo "No other changes found."
         fi
 
+        # Format commit messages as lists
+        FEATURES=$(echo "$FEATURES" | sed 's/^/- /')
+        FIXES=$(echo "$FIXES" | sed 's/^/- /')
+        OTHER=$(echo "$OTHER" | sed 's/^/- /')
+
         # Replace newlines with <br> tags
         FEATURES="${FEATURES//$'\n'/'<br>'}"
         FIXES="${FIXES//$'\n'/'<br>'}"
@@ -82,12 +74,18 @@ jobs:
         # Set the outputs (only if non-empty)
         if [ -n "$FEATURES" ]; then
           echo "FEATURES=${FEATURES}" >> $GITHUB_OUTPUT
+        else
+          echo "FEATURES=No features found." >> $GITHUB_OUTPUT
         fi
         if [ -n "$FIXES" ]; then
           echo "FIXES=${FIXES}" >> $GITHUB_OUTPUT
+        else
+          echo "FIXES=No fixes found." >> $GITHUB_OUTPUT
         fi
         if [ -n "$OTHER" ]; then
           echo "OTHER=${OTHER}" >> $GITHUB_OUTPUT
+        else
+          echo "OTHER=No other changes found." >> $GITHUB_OUTPUT
         fi
 
     - name: Determine version number
