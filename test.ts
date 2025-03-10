@@ -1,9 +1,3 @@
-fdgsdwerwr
-sdfsdfdsfsdfdssddssdc
-cccfdg33
-ddfrtert
-dssdd
-sdgertzxc
-fgdfgffffgdfg
-fdg
-iuo
+export default function TTT() {
+    return null
+}
