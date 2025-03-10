@@ -116,10 +116,10 @@ jobs:
           fi
           
           # Construct the new version
-          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
         else
           # If no tags exist, start with v1.0.0
-          NEW_VERSION="v1.0.0"
+          NEW_VERSION="1.0.0"
         fi
         
         # Output the new version
